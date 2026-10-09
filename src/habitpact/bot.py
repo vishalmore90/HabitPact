@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 EXTENSIONS = [
     "habitpact.cogs.habits",
     "habitpact.cogs.checkins",
+    "habitpact.cogs.stats",
 ]
 
 
