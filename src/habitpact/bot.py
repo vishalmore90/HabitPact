@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 # Extensions (cogs) to load on startup
 EXTENSIONS = [
     "habitpact.cogs.habits",
+    "habitpact.cogs.checkins",
 ]
 
 
