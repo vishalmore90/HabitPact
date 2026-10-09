@@ -17,6 +17,7 @@ EXTENSIONS = [
     "habitpact.cogs.habits",
     "habitpact.cogs.checkins",
     "habitpact.cogs.stats",
+    "habitpact.cogs.admin",
 ]
 
 
