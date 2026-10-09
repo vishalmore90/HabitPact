@@ -12,6 +12,7 @@ from habitpact.db.engine import get_session
 from habitpact.services.checkin_service import CheckinService
 from habitpact.services.guild_service import GuildService
 from habitpact.services.habit_service import HabitService
+from habitpact.utils.autocomplete import habit_name_autocomplete
 from habitpact.utils.embeds import COLOR_STREAK, error_embed, success_embed
 
 logger = logging.getLogger(__name__)
@@ -38,6 +39,7 @@ class CheckinCog(commands.Cog):
         description="Check in for one of your habits today",
     )
     @app_commands.describe(habit="The name of the habit to check in for")
+    @app_commands.autocomplete(habit=habit_name_autocomplete)
     async def checkin(self, interaction: discord.Interaction, habit: str) -> None:
         """Record a daily check-in for a habit."""
         if interaction.guild is None:

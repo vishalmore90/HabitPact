@@ -1,0 +1,36 @@
+# render.yaml — Infrastructure as Code for Render
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: worker
+    name: habitpact-bot
+    runtime: python
+    region: oregon
+    plan: starter          # Free tier available; upgrade for always-on
+
+    buildCommand: pip install -e ".[prod]"
+    startCommand: python -m habitpact
+
+    envVars:
+      - key: DISCORD_TOKEN
+        sync: false          # Set manually in Render dashboard — never in code
+
+      - key: DATABASE_URL
+        fromDatabase:
+          name: habitpact-db
+          property: connectionString
+
+      - key: ENVIRONMENT
+        value: prod
+
+      - key: LOG_LEVEL
+        value: INFO
+
+      - key: PYTHON_VERSION
+        value: "3.13"
+
+databases:
+  - name: habitpact-db
+    databaseName: habitpact
+    plan: free               # 1GB free PostgreSQL on Render
+    region: oregon

@@ -11,6 +11,7 @@ from discord.ext import commands
 from habitpact.db.engine import get_session
 from habitpact.services.guild_service import GuildService
 from habitpact.services.habit_service import HabitService
+from habitpact.utils.autocomplete import habit_name_autocomplete
 from habitpact.utils.embeds import error_embed, info_embed, success_embed
 
 logger = logging.getLogger(__name__)
@@ -108,6 +109,7 @@ class HabitCog(commands.Cog):
 
     @habit_group.command(name="delete", description="Delete a habit")
     @app_commands.describe(name="Name of the habit to delete")
+    @app_commands.autocomplete(name=habit_name_autocomplete)
     async def habit_delete(
         self, interaction: discord.Interaction, name: str
     ) -> None:
