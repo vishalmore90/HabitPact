@@ -9,6 +9,7 @@ from discord.ext import commands
 
 from habitpact.config import Settings
 from habitpact.db.engine import close_db, init_db
+from habitpact.scheduler.tasks import HabitScheduler
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,7 @@ class HabitPactBot(commands.Bot):
             help_command=None,
         )
         self.settings = settings
+        self.scheduler = HabitScheduler(self)
 
     async def setup_hook(self) -> None:
         """Called before the bot connects. Initialize DB and load cogs."""
@@ -51,6 +53,9 @@ class HabitPactBot(commands.Bot):
         synced = await self.tree.sync()
         logger.info("Synced %d slash command(s).", len(synced))
 
+        # Start background scheduler
+        self.scheduler.start()
+
     async def on_ready(self) -> None:
         """Called when the bot is fully connected and ready."""
         assert self.user is not None
@@ -65,7 +70,8 @@ class HabitPactBot(commands.Bot):
         await self.change_presence(activity=activity)
 
     async def close(self) -> None:
-        """Graceful shutdown: close DB before disconnecting."""
+        """Graceful shutdown: stop scheduler, then close DB."""
+        self.scheduler.stop()
         await close_db()
         logger.info("Database closed.")
         await super().close()
