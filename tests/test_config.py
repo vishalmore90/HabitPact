@@ -29,6 +29,16 @@ class TestSettings:
         with pytest.raises(AttributeError):
             s.discord_token = "other"  # type: ignore[misc]
 
+    def test_configure_logging_does_not_raise(self) -> None:
+        """configure_logging() should complete without raising."""
+        s = Settings(discord_token="tok", log_level="WARNING")
+        s.configure_logging()  # Should not raise
+
+    def test_configure_logging_invalid_level_does_not_raise(self) -> None:
+        """Invalid log level string should not raise (falls back to INFO)."""
+        s = Settings(discord_token="tok", log_level="NOTAVALIDLEVEL")
+        s.configure_logging()  # Should not raise
+
 
 class TestLoadSettings:
     """Test loading settings from environment variables."""
@@ -44,3 +54,19 @@ class TestLoadSettings:
         monkeypatch.delenv("DISCORD_TOKEN", raising=False)
         with pytest.raises(RuntimeError, match="DISCORD_TOKEN is not set"):
             load_settings()
+
+    def test_load_settings_custom_log_level(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("DISCORD_TOKEN", "tok")
+        monkeypatch.setenv("LOG_LEVEL", "DEBUG")
+        settings = load_settings()
+        assert settings.log_level == "DEBUG"
+
+    def test_load_settings_prod_environment(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("DISCORD_TOKEN", "tok")
+        monkeypatch.setenv("ENVIRONMENT", "prod")
+        settings = load_settings()
+        assert settings.is_prod is True
