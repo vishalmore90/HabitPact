@@ -23,6 +23,11 @@ class TestSettings:
         assert s.database_url == "sqlite+aiosqlite:///habitpact.db"
         assert s.log_level == "INFO"
         assert s.environment == "dev"
+        assert s.port is None
+
+    def test_custom_port(self) -> None:
+        s = Settings(discord_token="tok", port=8080)
+        assert s.port == 8080
 
     def test_frozen(self) -> None:
         s = Settings(discord_token="tok")
@@ -70,3 +75,19 @@ class TestLoadSettings:
         monkeypatch.setenv("ENVIRONMENT", "prod")
         settings = load_settings()
         assert settings.is_prod is True
+
+    def test_load_settings_port_parsing(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("DISCORD_TOKEN", "tok")
+        monkeypatch.setenv("PORT", "10000")
+        settings = load_settings()
+        assert settings.port == 10000
+
+    def test_load_settings_invalid_port_ignored(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("DISCORD_TOKEN", "tok")
+        monkeypatch.setenv("PORT", "not-a-port")
+        settings = load_settings()
+        assert settings.port is None

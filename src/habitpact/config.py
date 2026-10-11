@@ -28,6 +28,7 @@ class Settings:
     database_url: str = "sqlite+aiosqlite:///habitpact.db"
     log_level: str = "INFO"
     environment: str = "dev"
+    port: int | None = None
 
     # Derived
     is_prod: bool = field(init=False)
@@ -58,9 +59,13 @@ def load_settings() -> Settings:
             "Copy .env.example to .env and fill in your bot token."
         )
 
+    raw_port = os.environ.get("PORT")
+    port = int(raw_port) if raw_port and raw_port.isdigit() else None
+
     return Settings(
         discord_token=token,
         database_url=os.environ.get("DATABASE_URL", "sqlite+aiosqlite:///habitpact.db"),
         log_level=os.environ.get("LOG_LEVEL", "INFO"),
         environment=os.environ.get("ENVIRONMENT", "dev"),
+        port=port,
     )

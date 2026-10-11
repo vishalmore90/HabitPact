@@ -2,14 +2,15 @@
 # Docs: https://render.com/docs/blueprint-spec
 
 services:
-  - type: worker
+  - type: web
     name: habitpact-bot
     runtime: python
     region: oregon
-    plan: starter          # Free tier available; upgrade for always-on
+    plan: free               # 100% Free tier (Web Service)
 
     buildCommand: pip install -e ".[prod]"
     startCommand: python -m habitpact
+    healthCheckPath: /health
 
     envVars:
       - key: DISCORD_TOKEN
@@ -29,8 +30,11 @@ services:
       - key: PYTHON_VERSION
         value: "3.13"
 
+      - key: PORT
+        value: "10000"
+
 databases:
   - name: habitpact-db
     databaseName: habitpact
-    plan: free               # 1GB free PostgreSQL on Render
+    plan: free               # Free tier (Render expires after 30d; can swap for free permanent Neon/Supabase DB)
     region: oregon

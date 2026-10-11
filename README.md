@@ -164,6 +164,33 @@ checkins        id (PK), habit_id (FK), checked_date, created_at
 
 ---
 
+## 🚀 Free 24/7 Cloud Deployment (Render)
+
+HabitPact is configured for zero-cost deployment on Render using the included `render.yaml` Blueprint:
+
+### 1. Connect Repo to Render
+1. Push this repository to GitHub.
+2. In the [Render Dashboard](https://dashboard.render.com/), click **New +** → **Blueprint**.
+3. Select your GitHub repository.
+4. Render will detect `render.yaml` and configure a **Free Web Service** with an automated `/health` endpoint and a free PostgreSQL database.
+5. In the environment variables prompt, enter your `DISCORD_TOKEN`.
+
+### 2. Keep the Bot Awake 24/7 (Prevent Free Tier Sleep)
+Render's free web tier sleeps after 15 minutes without incoming HTTP traffic. To keep the bot connected to Discord 24/7 without paying $7/month:
+1. Create a free account on [UptimeRobot](https://uptimerobot.com/) or [cron-job.org](https://cron-job.org/).
+2. Add a new **HTTP(s) Monitor**:
+   - **URL**: `https://<your-service-name>.onrender.com/health`
+   - **Interval**: Every 5 or 10 minutes.
+3. This periodically pings the `/health` endpoint and keeps the bot awake around the clock for $0.
+
+### 3. Forever-Free Database (Optional)
+Render's free PostgreSQL tier automatically deletes databases after 30 days. For permanent, forever-free database hosting:
+1. Create a free PostgreSQL instance on [Neon.tech](https://neon.tech) or [Supabase](https://supabase.com).
+2. Copy the connection string (e.g., `postgresql+asyncpg://...`).
+3. Set your service's `DATABASE_URL` environment variable in the Render dashboard to your Neon/Supabase connection string.
+
+---
+
 ## 🧪 Development
 
 ```bash
@@ -193,8 +220,8 @@ mypy src/habitpact/
 | Services (habit, checkin, guild, stats) | 96–100% |
 | DB models & engine | 94–97% |
 | Utilities (embeds, timezone) | 100% |
-| Cogs / bot / scheduler | 0% (require live Discord client) |
-| **Total** | **~50%** |
+| Config & Health server | 94–100% |
+| **Total** | **56% (96 tests)** |
 
 ---
 
