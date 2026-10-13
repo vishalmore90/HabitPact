@@ -46,6 +46,23 @@ class Settings:
         )
 
 
+def _normalise_database_url(url: str) -> str:
+    """Rewrite bare PostgreSQL schemes to use the asyncpg async dialect.
+
+    Render (and other hosting providers) inject DATABASE_URL as
+    ``postgres://...`` or ``postgresql://...``.  SQLAlchemy maps these to
+    the *synchronous* psycopg driver, which is not installed.  This project
+    uses asyncpg (declared in the ``[prod]`` extra), so we must use the
+    ``postgresql+asyncpg://`` scheme.
+
+    SQLite URLs are left untouched.
+    """
+    for bare in ("postgres://", "postgresql://"):
+        if url.startswith(bare):
+            return "postgresql+asyncpg://" + url[len(bare):]
+    return url
+
+
 def load_settings() -> Settings:
     """Load settings from environment variables, with .env file support."""
     dotenv_path = _find_dotenv()
@@ -62,9 +79,11 @@ def load_settings() -> Settings:
     raw_port = os.environ.get("PORT")
     port = int(raw_port) if raw_port and raw_port.isdigit() else None
 
+    raw_db_url = os.environ.get("DATABASE_URL", "sqlite+aiosqlite:///habitpact.db")
+
     return Settings(
         discord_token=token,
-        database_url=os.environ.get("DATABASE_URL", "sqlite+aiosqlite:///habitpact.db"),
+        database_url=_normalise_database_url(raw_db_url),
         log_level=os.environ.get("LOG_LEVEL", "INFO"),
         environment=os.environ.get("ENVIRONMENT", "dev"),
         port=port,

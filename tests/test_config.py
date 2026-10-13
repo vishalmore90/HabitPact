@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from habitpact.config import Settings, load_settings
+from habitpact.config import Settings, _normalise_database_url, load_settings
 
 
 class TestSettings:
@@ -91,3 +91,37 @@ class TestLoadSettings:
         monkeypatch.setenv("PORT", "not-a-port")
         settings = load_settings()
         assert settings.port is None
+
+
+class TestNormaliseDatabaseUrl:
+    """Tests for the URL normalisation helper that fixes the Render psycopg error."""
+
+    def test_postgres_scheme_rewritten(self) -> None:
+        result = _normalise_database_url("postgres://user:pass@host:5432/db")
+        assert result == "postgresql+asyncpg://user:pass@host:5432/db"
+
+    def test_postgresql_scheme_rewritten(self) -> None:
+        result = _normalise_database_url("postgresql://user:pass@host:5432/db")
+        assert result == "postgresql+asyncpg://user:pass@host:5432/db"
+
+    def test_asyncpg_scheme_unchanged(self) -> None:
+        url = "postgresql+asyncpg://user:pass@host:5432/db"
+        assert _normalise_database_url(url) == url
+
+    def test_sqlite_url_unchanged(self) -> None:
+        url = "sqlite+aiosqlite:///habitpact.db"
+        assert _normalise_database_url(url) == url
+
+    def test_in_memory_sqlite_unchanged(self) -> None:
+        url = "sqlite+aiosqlite:///:memory:"
+        assert _normalise_database_url(url) == url
+
+    def test_load_settings_rewrites_render_url(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """End-to-end: Render-style DATABASE_URL is rewritten at load time."""
+        monkeypatch.setenv("DISCORD_TOKEN", "tok")
+        monkeypatch.setenv("DATABASE_URL", "postgres://user:pass@host:5432/habitpact")
+        settings = load_settings()
+        assert settings.database_url == "postgresql+asyncpg://user:pass@host:5432/habitpact"
+
